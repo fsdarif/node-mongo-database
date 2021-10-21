@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+
+    .container {
+        width: 1140px;
+        margin: 0 auto;
+    }
+    .title{
+        text-align: center;
+    }
+    .title h1 {
+    font-size: 70px;
+    letter-spacing: 2.1px;
+    line-height: 22px;
+    box-shadow:0px 28px 1px #e5e5e5;
+    display: inline-block;
+    }
+
+
+
+    .form input {
+        display: inline-block;
+        flex-direction: column;
+        width: 23%;
+        padding: 10px ;
+        margin-right: 10px;
+    }
+
+    #add-btn {
+        padding: 10px 30px;
+        transition: .1s;
+    }
+
+    button:hover {
+        background-color: rgb(230, 230, 230);
+        border: 2px solid rgb(170, 170, 170);
+        cursor: pointer;
+    }
+
+    #product{
+        margin-top: 40px;
+        font-size: 20px;
+        line-height: 0px;
+    }
+    #name {
+    color: rgb(0, 0, 0);
+    flex-basis: 20%;
+    }
+
+    .product-list {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    #price {
+        flex-basis: 10%;
+    }
+
+    .pd-list {
+    line-height: 0;
+    margin-top: 57px;
+    margin-bottom: -18px;
+    font-size: 29px;
+    text-transform: uppercase;
+    }
+
+    #qty {
+        flex-basis: 13%;
+    }
+
+    #dlt-btn {
+        flex-basis: 7%;
+    }
+
+    button#updt-btn {
+        flex-basis: 7%;
+        margin: 0 10px;
+    }
+    .ut{
+        color: grey;
+        margin-top: 40px;
+    }
+
+    </style>
+
+</head>
+<body>
+    <div class="container">
+        <div class="title">
+            <h1>Node & Mondodb Projects</h1>
+        </div>
+        <div class="form">
+            <form action="/addProduct" method="post">
+                <input type="text" placeholder="Name" name="name">
+                <input type="text" placeholder="Price" name="price">
+                <input type="text" placeholder="Quantity" name="quantity">
+                <button id="add-btn" type="submit">Add Products</button>
+            </form>
+        </div>
+        <h3 class="pd-list">Product Lists</h3>
+
+        <div id="product"></div>
+        <div id="updateProduct"></div>
+
+    </div>
+
+    <script>
+        // load full data from backend to Frontend
+            // app.get('/products', (req, res) => {
+            // productCollection.find({})
+            // .toArray((error, documents) => {
+            // res.send(documents)
+            // }) });
+        fetch('/products')
+        .then(res => res.json())
+        .then(data => displayProduct(data));
+
+        const displayProduct = (data)  => {
+            const container = document.getElementById('product');
+            data.forEach(pd => {
+                const div = document.createElement('div');
+                div.className = "product-list"
+                div.innerHTML = `
+                <p id="name">Name : ${pd.name} </p> 
+                <p id="price">Price : ${pd.price} </p> 
+                <p id="qty">Quantity : ${pd.quantity} </p> 
+                <button onclick="updateProductHandle('${pd._id}')" id="updt-btn">Update</button> 
+                <button onclick="deleteProduct(event, '${pd._id}')" id="dlt-btn">Delete</button> 
+                `
+                container.appendChild(div);
+            });
+           
+        } 
+
+        //delete data with fetch backend frontend
+            // app.delete('/delete/:id', (req, res) => {
+            // productCollection.deleteOne({_id: ObjectId(req.params.id) })
+            // .then((result) => {
+            // }) });
+        const deleteProduct = (event, id) => {
+            console.log(event.target.parentNode)
+            fetch(`/delete/${id}`, {
+                method: 'DELETE'
+            })
+            .then(res => res.json())
+            .then(result => {
+                result ? event.target.parentNode.style.display = "none" : null;
+            })
+        }
+
+
+        //update data: fetch single product
+            //GET-2: single product
+            // app.get('/singleProduct/:id', (req, res) => {
+            // productCollection.find({_id: ObjectId(req.params.id) })
+            // .toArray ((error, documents) => {
+            // res.send(documents[0])
+            // }) })
+
+        const updateProductHandle = (id) => {
+        fetch(`singleProduct/${id}`)
+        .then(res => res.json())
+        .then(data => {
+            const updateProduct = document.getElementById('updateProduct');
+            updateProduct.innerHTML = `
+                <h4 class="ut"> Updating Product Id: <small> ${data._id} </small> </h4>
+                <input type="text" value="${data.name}" name="name" id="updName">
+                <input type="text" value="${data.price}" name="price" id="updPrice">
+                <input type="text" value="${data.quantity}" name="quantity" id="updQty">
+                <button onclick="updatedProductHandle('${data._id}')" > Submit </button>
+            `
+        })
+        }
+
+        //update button function
+        const updatedProductHandle = (id) => {
+            console.log('updating product', id)
+            const price = document.getElementById('updPrice').value;
+            const quantity = document.getElementById('updQty').value;
+            const product = {id, price, quantity};
+            console.log(product)
+            fetch(`/update/${id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(product)
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log('updated')
+            })
+        }
+
+
+
+    </script>
+
+</body>
+</html>
